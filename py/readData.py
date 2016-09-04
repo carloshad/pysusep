@@ -1,8 +1,10 @@
 """readData.py - simple Python script for .csv reading."""
 
-import pandas as pd         # loading pandas module
-import numpy as np          # loading numpy module
-import matplotlib as plt    # loading matplotlib module
+import pandas as pd                  # loading pandas module
+import numpy as np                   # loading numpy module
+import matplotlib as plt             # loading matplotlib module
+import os.path                       # loading os.path to work with paths on your OS
+from collections import OrderedDict  # to work with ordered dictionaries
 
 '''
 Action required: install 'pandas','numpy' and 'matplotlib' into
@@ -34,25 +36,59 @@ http://matplotlib.org
 ---
 '''
 
-# reading .csv file into pandas DataFrame object (modify the file path)
-df = pd.read_csv('/Users/gustavo/pysusep/csv/LifeInsuranceTable-Australia.csv', header=0)
+# file path
+fid = os.path.join(os.path.dirname(__file__),
+      '../csv/LifeInsuranceTable-Australia-Clean.csv')
 
-# taking types and creating an array
-office_types = np.array(df.irow(0))
+# reading .csv file into pandas DataFrame object
+df = pd.read_csv(fid, header=None)
 
-# taking codes and creating an array
-office_codes = np.array(df.irow(9))
+# fill missing entries with N/A
+df.fillna
 
-# printing
-print office_types
-print office_codes
+# getting names and creating an array
+header_names = np.array(df.iloc[0])
 
-# deleting word 'Title'
-office_types = np.delete(office_types, 0)
+# replacing 'SeriesID' with 'Time'
+header_names[0] = 'Time'
 
-# deleting word 'Series ID'
-office_codes = np.delete(office_codes, 0)
+# removing string to reduce names
+strAux = 'Life insurance offices; '
 
-# updated printing
-print office_types
-print office_codes
+for i in range(1, header_names.shape[0]):
+    aux = header_names[i]
+    aux = aux[len(strAux):]
+    header_names[i] = aux
+
+'''
+INCOMPLETE!!!
+
+What to do?
+
+Creating a ordered dictionary with new names in order to create a new
+dataframe to be exported. We need to fill in the dictionary with
+'key:value' pairs:
+ - the keys should be the new names
+ - the values should be the columns
+
+Can this be done through a multiindex 'for' to fill in the dictionary?
+
+ '''
+
+# getting csv data from 10th line and on for all columns
+# aux = df.iloc[10:, :]
+
+# A 'for' in j is required to run over columns!
+# df.iloc[10:, j]
+#newDict = OrderedDict((i, aux) for i in header_names)
+#newDict = OrderedDict((i, j) for i, j in header_names, df.iloc[10:, j]))
+
+'''
+After creating the new dataframe 'newDict', we export
+the new .csv to directory
+
+dfNew = pd.DataFrame(newDict)
+fidOut = os.path.join(os.path.dirname(__file__),
+        '../csv/LifeInsuranceTable-Australia-New.csv')
+dfNew.to_csv(fidOut, columns=header_names)
+'''
