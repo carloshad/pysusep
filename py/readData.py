@@ -1,9 +1,13 @@
-"""readData.py - simple Python script for .csv reading."""
+"""readData.py - Python script to read .csv, clean it and export it.
+
+Authors: Gustavo CPO & Carlos HAD
+Date: Sep 7, 2016
+
+"""
 
 import pandas as pd                  # loading pandas module
 import numpy as np                   # loading numpy module
-import matplotlib as plt             # loading matplotlib module
-import os.path                       # loading os.path to work with paths on your OS
+import os.path                       # loading os.path to work with paths
 from collections import OrderedDict  # to work with ordered dictionaries
 
 '''
@@ -28,67 +32,85 @@ It contains among other things:
     - a powerful N-dimensional array object
 http://www.numpy.org
 ---
-
---- MATPLOTLIB
-Matplotlib is a python 2D plotting library which produces quality figures.
-Useful for data visualization.
-http://matplotlib.org
----
 '''
 
-# file path
+''' STEP 1: Read the .csv file. '''
+
+# getting file path in your OS
 fid = os.path.join(os.path.dirname(__file__),
       '../csv/LifeInsuranceTable-Australia-Clean.csv')
 
 # reading .csv file into pandas DataFrame object
 df = pd.read_csv(fid, header=None)
 
-# fill missing entries with N/A
-df.fillna
+# filling missing entries of original file with 0's
+df.fillna(value=0, inplace=True)
 
-# getting names and creating an array
+
+''' STEP 2: Modify headers to clean the file.'''
+
+# getting header names and creating an array
 header_names = np.array(df.iloc[0])
 
-# replacing 'SeriesID' with 'Time'
+# replacing name 'SeriesID' with 'Time'
 header_names[0] = 'Time'
 
-# removing string to reduce names
+''' Removing string to reduce the header names. '''
+
+# string to remove
 strAux = 'Life insurance offices; '
 
+# finding strAux and removing it out
 for i in range(1, header_names.shape[0]):
     aux = header_names[i]
     aux = aux[len(strAux):]
     header_names[i] = aux
 
-'''
-INCOMPLETE!!!
+''' STEP 3: Create a new dictionary object to build a new DataFrame.'''
 
-What to do?
+''' Filling (key,values) pair to build a new dict. '''
 
-Creating a ordered dictionary with new names in order to create a new
-dataframe to be exported. We need to fill in the dictionary with
-'key:value' pairs:
- - the keys should be the new names
- - the values should be the columns
+# declare empty variables
+keys = []
+values = []
+for i in range(0, header_names.shape[0]):
 
-Can this be done through a multiindex 'for' to fill in the dictionary?
+    # filling keys
+    keys.append(header_names[i])
 
- '''
+    # getting Series (i-th column)
+    aux = df.iloc[:, i]
 
-# getting csv data from 10th line and on for all columns
-# aux = df.iloc[10:, :]
+    # convert to numpy object
+    aux = aux.as_matrix()
 
-# A 'for' in j is required to run over columns!
-# df.iloc[10:, j]
-#newDict = OrderedDict((i, aux) for i in header_names)
-#newDict = OrderedDict((i, j) for i, j in header_names, df.iloc[10:, j]))
+    # removes two first lines out
+    aux = aux[2:]
 
-'''
-After creating the new dataframe 'newDict', we export
-the new .csv to directory
+    # conversions
+    if i == 0:  # 1st column: string
+        aux = aux.astype(str)
+    else:   # 2nd column and on: integers
+        aux = aux.astype(int)
 
+    # filling values
+    values.append(aux)
+
+# creating ordered dict to keep the same
+# non-alphabetical order of the original file
+newDict = OrderedDict(zip(keys, values))
+
+# create new dataframe from 'newDict'
 dfNew = pd.DataFrame(newDict)
+
+''' STEP 4: Export new DataFrame to new .csv file'''
+
+# file path to new file
 fidOut = os.path.join(os.path.dirname(__file__),
         '../csv/LifeInsuranceTable-Australia-New.csv')
+
+# export
 dfNew.to_csv(fidOut, columns=header_names)
-'''
+
+# message
+print 'You did it! Check the new file in: ' + fidOut + '.'
